@@ -30,12 +30,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapp.databinding.ActivityMainBinding
 import com.example.myapp.ui.theme.MyAPPTheme
+import kotlinx.coroutines.Delay
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 
 class MainActivity : ComponentActivity() {
 
@@ -49,40 +53,92 @@ class MainActivity : ComponentActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(R.layout.activity_main)
 
-        // Simplest way to start a coroutine, but not the best way
-        GlobalScope.launch(Dispatchers.IO) {
-            Log.d(TAG, "Starting Coroutine in thread ${Thread.currentThread().name}")
-            val answer = doNetworkCall()
-            withContext(Dispatchers.Main) {
-                Log.d(TAG, "Setting text in thread ${Thread.currentThread().name}")
-                binding.button.text = answer
-            }
-        }
-    }
-
-
-    suspend fun doNetworkCall(): String {
-        delay(3000L)
-        return "This is the answer."
-    }
-
-    suspend fun doNetworkCall2(): String {
-        delay(3000L)
-        return "This is the answer."
-    }
-
-/*
-        enableEdgeToEdge()
-        setContent {
-            MyAPPTheme {
-                Scaffold( modifier = Modifier.fillMaxSize() ) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+        val job = GlobalScope.launch(Dispatchers.Default) {
+            Log.d(TAG, "Starting long running calculation...")
+            withTimeout(3000L) {
+                for (i in 30..50) {
+                    if (isActive) {
+                        Log.d(TAG, "Result for i = $i: ${fib(i)}")
+                    }
                 }
             }
+            Log.d(TAG, "Ending long running calculation...")
         }
+
+/*
+        runBlocking {  // Manual cancellation of the job {commented}
+            delay(2000L)
+            job.cancel()
+            Log.d(TAG, "Cancelled job!")
+        }
+*/
+    }
+
+    fun fib(n: Int): Long {
+        return if (n == 0) 0
+        else if (n == 1) 1
+        else fib(n - 1) + fib(n - 2)
+    }
+
+    /*
+            GlobalScope.launch(Dispatchers.Main) { // this won't block the main thread
+
+            }
+
+
+            Log.d(TAG, "Before runBlocking")
+            runBlocking {  // will block the main thread
+                launch(Dispatchers.IO) {
+                    delay(3000L)
+                    Log.d(TAG, "Finished IO Coroutine 1.")
+                }
+
+                launch(Dispatchers.IO) {
+                    delay(3000L)
+                    Log.d(TAG, "Finished IO Coroutine 2.")
+                }
+
+                Log.d(TAG, "Start of runBlocking")
+                delay(5000L)
+                Log.d(TAG, "End of runBlocking")
+            }
+            Log.d(TAG, "After runBlocking")
+    */
+
+    // Simplest way to start a coroutine, but not the best way
+//        GlobalScope.launch(Dispatchers.IO) {
+//            Log.d(TAG, "Starting Coroutine in thread ${Thread.currentThread().name}")
+//            val answer = doNetworkCall()
+//            withContext(Dispatchers.Main) {
+//                Log.d(TAG, "Setting text in thread ${Thread.currentThread().name}")
+//                binding.button.text = answer
+//            }
+//        }
+//    }
+//
+//
+//    suspend fun doNetworkCall(): String {
+//        delay(3000L)
+//        return "This is the answer."
+//    }
+//
+//    suspend fun doNetworkCall2(): String {
+//        delay(3000L)
+//        return "This is the answer."
+//    }
+
+    /*
+    enableEdgeToEdge()
+    setContent {
+        MyAPPTheme {
+            Scaffold( modifier = Modifier.fillMaxSize() ) { innerPadding ->
+                Greeting(
+                    name = "Android",
+                    modifier = Modifier.padding(innerPadding)
+                )
+            }
+        }
+    }
 */
 }
 
