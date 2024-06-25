@@ -1,8 +1,11 @@
 package com.example.myapp
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,6 +31,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.myapp.databinding.ActivityMainBinding
 import com.example.myapp.ui.theme.MyAPPTheme
 import kotlinx.coroutines.Delay
@@ -44,18 +50,42 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlin.system.measureTimeMillis
 
+
+
+
 class MainActivity : ComponentActivity() {
 
     val TAG = "Main Activity"
 
     private lateinit var binding: ActivityMainBinding
 
-    @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(R.layout.activity_main)
+        val view = binding.root
+        setContentView(view)
 
+        binding.buttonsrtactivity.setOnClickListener {
+            lifecycleScope.launch {
+                while (true) {
+                    delay(1000L)
+                    Log.d(TAG, "Still running")
+                }
+            }
+            GlobalScope.launch {
+                delay(5000L)
+                Intent(this@MainActivity, MainActivity2::class.java).also {
+                    startActivity(it)
+                    finish()
+                }
+            }
+
+
+        }
+    }
+}
+
+/*
         GlobalScope.launch(Dispatchers.IO) {
             val time = measureTimeMillis {
                 val answer1 = async { networkCall1() }
@@ -76,6 +106,7 @@ class MainActivity : ComponentActivity() {
         delay(3000L)
         return "Answer 2"
     }
+*/
 
 
     /*
@@ -99,7 +130,6 @@ class MainActivity : ComponentActivity() {
                 Log.d(TAG, "Cancelled job!")
             }
     */
-}
 
 fun fib(n: Int): Long {
     return if (n == 0) 0
